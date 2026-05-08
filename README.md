@@ -6,7 +6,7 @@ A personal habit and mood tracker built on Cloudflare. Project #1 of a two-proje
 
 | Phase | Description | Done |
 |---|---|---|
-| 1 | Static site on a custom domain (Cloudflare Pages) | in progress |
+| 1 | Static site on Cloudflare Pages | ✓ |
 | 2 | Serverless API endpoint (Pages Functions) | — |
 | 3 | Persistent storage (Cloudflare KV) | — |
 | 4 | Auth + mood tracking (Worker secrets, middleware) | — |
@@ -14,7 +14,7 @@ A personal habit and mood tracker built on Cloudflare. Project #1 of a two-proje
 
 ## Live demo
 
-_(URL will appear here once Phase 1 is deployed)_
+<https://habit-tracker-cja.pages.dev>
 
 ## Local preview
 
