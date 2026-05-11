@@ -15,25 +15,43 @@
 
     <section class="habits">
       <h2>Today</h2>
-      <ul class="habit-list">
-        <li class="habit">
-          <span class="habit-name">Read for 20 minutes</span>
-          <span class="habit-category">learn</span>
-        </li>
-        <li class="habit">
-          <span class="habit-name">Walk outside</span>
-          <span class="habit-category">health</span>
-        </li>
-        <li class="habit">
-          <span class="habit-name">Write a journal entry</span>
-          <span class="habit-category">reflect</span>
-        </li>
+      <ul class="habit-list" id="habit-list">
+        <li class="habit habit-loading">Loading…</li>
       </ul>
     </section>
 
     <footer class="app-footer">
-      <p>Phase 1 &middot; static page on Cloudflare Pages.</p>
+      <p>Phase 2 &middot; habits loaded from a serverless API.</p>
     </footer>
   </main>
+
+  <script>
+    async function loadHabits() {
+      const list = document.getElementById('habit-list');
+      try {
+        const res = await fetch('/api/habits');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const habits = await res.json();
+        list.replaceChildren(...habits.map(habit => {
+          const li = document.createElement('li');
+          li.className = 'habit';
+          const name = document.createElement('span');
+          name.className = 'habit-name';
+          name.textContent = habit.name;
+          const cat = document.createElement('span');
+          cat.className = 'habit-category';
+          cat.textContent = habit.category;
+          li.append(name, cat);
+          return li;
+        }));
+      } catch (err) {
+        const li = document.createElement('li');
+        li.className = 'habit habit-error';
+        li.textContent = 'Could not load habits: ' + err.message;
+        list.replaceChildren(li);
+      }
+    }
+    loadHabits();
+  </script>
 </body>
 </html>
