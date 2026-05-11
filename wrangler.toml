@@ -1,3 +1,8 @@
 name = "habit-tracker"
 compatibility_date = "2026-05-08"
 pages_build_output_dir = "public"
+
+[[kv_namespaces]]
+binding = "HABITS"
+id = "ed61470ef5304f909667475fc4086136"
+preview_id = "f6ac09a3e85a43a28e6bc91919d98904"

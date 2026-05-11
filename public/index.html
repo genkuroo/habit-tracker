@@ -15,35 +15,42 @@
 
     <section class="habits">
       <h2>Today</h2>
+
+      <form class="habit-form" id="habit-form">
+        <input type="text" name="name" placeholder="Habit name" required>
+        <input type="text" name="category" placeholder="Category" required>
+        <button type="submit">Add</button>
+      </form>
+
       <ul class="habit-list" id="habit-list">
         <li class="habit habit-loading">Loading…</li>
       </ul>
     </section>
 
     <footer class="app-footer">
-      <p>Phase 2 &middot; habits loaded from a serverless API.</p>
+      <p>Phase 3 &middot; habits persisted in Cloudflare KV.</p>
     </footer>
   </main>
 
   <script>
+    const list = document.getElementById('habit-list');
+    const form = document.getElementById('habit-form');
+
     async function loadHabits() {
-      const list = document.getElementById('habit-list');
       try {
         const res = await fetch('/api/habits');
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const habits = await res.json();
-        list.replaceChildren(...habits.map(habit => {
+
+        if (habits.length === 0) {
           const li = document.createElement('li');
-          li.className = 'habit';
-          const name = document.createElement('span');
-          name.className = 'habit-name';
-          name.textContent = habit.name;
-          const cat = document.createElement('span');
-          cat.className = 'habit-category';
-          cat.textContent = habit.category;
-          li.append(name, cat);
-          return li;
-        }));
+          li.className = 'habit habit-empty';
+          li.textContent = 'No habits yet. Add one above.';
+          list.replaceChildren(li);
+          return;
+        }
+
+        list.replaceChildren(...habits.map(renderHabit));
       } catch (err) {
         const li = document.createElement('li');
         li.className = 'habit habit-error';
@@ -51,7 +58,61 @@
         list.replaceChildren(li);
       }
     }
+
+    function renderHabit(habit) {
+      const li = document.createElement('li');
+      li.className = 'habit';
+
+      const name = document.createElement('span');
+      name.className = 'habit-name';
+      name.textContent = habit.name;
+
+      const cat = document.createElement('span');
+      cat.className = 'habit-category';
+      cat.textContent = habit.category;
+
+      const del = document.createElement('button');
+      del.className = 'habit-delete';
+      del.type = 'button';
+      del.textContent = 'Delete';
+      del.addEventListener('click', () => deleteHabit(habit.id));
+
+      li.append(name, cat, del);
+      return li;
+    }
+
+    async function deleteHabit(id) {
+      const res = await fetch('/api/habits/' + encodeURIComponent(id), { method: 'DELETE' });
+      if (!res.ok) {
+        alert('Delete failed: HTTP ' + res.status);
+        return;
+      }
+      loadHabits();
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = new FormData(form);
+      const body = { name: data.get('name'), category: data.get('category') };
+
+      const res = await fetch('/api/habits', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        alert('Create failed: HTTP ' + res.status);
+        return;
+      }
+
+      form.reset();
+      loadHabits();
+    });
+
     loadHabits();
   </script>
 </body>
 </html>
+</content>
+</invoke>
