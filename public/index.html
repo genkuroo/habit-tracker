@@ -16,6 +16,8 @@
     <section class="habits">
       <h2>Today</h2>
 
+      <div class="error-banner" id="error-banner" hidden></div>
+
       <form class="habit-form" id="habit-form">
         <input type="text" name="name" placeholder="Habit name" required>
         <input type="text" name="category" placeholder="Category" required>
@@ -35,8 +37,19 @@
   <script>
     const list = document.getElementById('habit-list');
     const form = document.getElementById('habit-form');
+    const banner = document.getElementById('error-banner');
+
+    function showError(message) {
+      banner.textContent = message;
+      banner.hidden = false;
+    }
+
+    function clearError() {
+      banner.hidden = true;
+    }
 
     async function loadHabits() {
+      clearError();
       try {
         const res = await fetch('/api/habits');
         if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -82,9 +95,11 @@
     }
 
     async function deleteHabit(id) {
+      if (!confirm('Delete this habit?')) return;
+      clearError();
       const res = await fetch('/api/habits/' + encodeURIComponent(id), { method: 'DELETE' });
       if (!res.ok) {
-        alert('Delete failed: HTTP ' + res.status);
+        showError('Could not delete habit (HTTP ' + res.status + ')');
         return;
       }
       loadHabits();
@@ -92,22 +107,30 @@
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+      clearError();
       const data = new FormData(form);
       const body = { name: data.get('name'), category: data.get('category') };
 
-      const res = await fetch('/api/habits', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(body),
-      });
+      const submitBtn = form.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
 
-      if (!res.ok) {
-        alert('Create failed: HTTP ' + res.status);
-        return;
+      try {
+        const res = await fetch('/api/habits', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+
+        if (!res.ok) {
+          showError('Could not create habit (HTTP ' + res.status + ')');
+          return;
+        }
+
+        form.reset();
+        loadHabits();
+      } finally {
+        submitBtn.disabled = false;
       }
-
-      form.reset();
-      loadHabits();
     });
 
     loadHabits();
